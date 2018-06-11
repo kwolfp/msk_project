@@ -18,16 +18,26 @@ public class TankFederate extends BaseFederate<TankAmbassador> {
 
 
     @Override
-    protected void onUpdate(double time) throws Exception {
-        SuppliedAttributes attributes = RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
+    protected void update() throws Exception {
+        double timeToAdvance = fedamb.federateTime + timeStep;
+        advanceTime(timeToAdvance);
 
-        int classHandle = rtiamb.getObjectClass(czolObjHandle);
-        int stockHandle = rtiamb.getAttributeHandle( "Polozenie", classHandle );
-        byte[] stockValue = EncodingHelpers.encodeInt(123);
+        if(fedamb.getGrantedTime() == timeToAdvance) {
+            timeToAdvance += fedamb.federateLookahead;
+            log("Updating czolObj at time: " + timeToAdvance);
 
-        attributes.add(stockHandle, stockValue);
-        LogicalTime logicalTime = convertTime( time );
-        rtiamb.updateAttributeValues( czolObjHandle, attributes, "actualize stock".getBytes(), logicalTime );
+            SuppliedAttributes attributes = RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
+
+            int classHandle = rtiamb.getObjectClass(czolObjHandle);
+            int stockHandle = rtiamb.getAttributeHandle( "Polozenie", classHandle );
+            byte[] stockValue = EncodingHelpers.encodeInt(123);
+
+            attributes.add(stockHandle, stockValue);
+            LogicalTime logicalTime = convertTime( timeToAdvance );
+            rtiamb.updateAttributeValues( czolObjHandle, attributes, "actualize stock".getBytes(), logicalTime );
+
+            fedamb.federateTime = timeToAdvance;
+        }
     }
 
     protected void sendInteraction(double timeStep) throws RTIexception {
@@ -42,6 +52,7 @@ public class TankFederate extends BaseFederate<TankAmbassador> {
 
     @Override
     protected void publishAndSubscribe() throws RTIexception {
+        // rejestracj obj Czolg
         int classHandle = rtiamb.getObjectClassHandle("ObjectRoot.Czolg");
         int rodzajHandle = rtiamb.getAttributeHandle( "Rodzaj", classHandle );
         int wielkoscHandle = rtiamb.getAttributeHandle( "Wielkosc", classHandle );
@@ -57,6 +68,19 @@ public class TankFederate extends BaseFederate<TankAmbassador> {
         attributes.add( wystrzeleniePociskuHandle );
 
         rtiamb.publishObjectClass(classHandle, attributes);
+
+        // subskrypcja obj Cel
+        int celHandle = rtiamb.getObjectClassHandle("ObjectRoot.Cel");
+        int polozenieHandle2 = rtiamb.getAttributeHandle( "Polozenie", celHandle );
+        int poziomUszkodzenHandle2 = rtiamb.getAttributeHandle( "PoziomUszkodzen", celHandle );
+        int niezdatnyHandle2 = rtiamb.getAttributeHandle( "Niezdatny", celHandle );
+
+        AttributeHandleSet attributes2 = RtiFactoryFactory.getRtiFactory().createAttributeHandleSet();
+        attributes2.add( polozenieHandle2 );
+        attributes2.add( poziomUszkodzenHandle2 );
+        attributes2.add( niezdatnyHandle2 );
+
+        rtiamb.subscribeObjectClassAttributes(celHandle, attributes2);
     }
 
     @Override

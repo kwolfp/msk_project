@@ -1,4 +1,4 @@
-package pl.edu.wat.msk.tank;
+package pl.edu.wat.msk.target;
 
 import hla.rti.EventRetractionHandle;
 import hla.rti.LogicalTime;
@@ -10,7 +10,7 @@ import pl.edu.wat.msk.BaseAmbassador;
  * Created by Kamil Przyborowski
  * Wojskowa Akademia Techniczna im. Jarosława Dąbrowskiego, Warszawa 2018.
  */
-public class TankAmbassador extends BaseAmbassador {
+public class TargetAmbassador extends BaseAmbassador {
 
     @Override
     public void receiveInteraction(int interactionClass, ReceivedInteraction theInteraction, byte[] tag, LogicalTime theTime, EventRetractionHandle eventRetractionHandle) {
@@ -19,12 +19,11 @@ public class TankAmbassador extends BaseAmbassador {
 
     @Override
     public void reflectAttributeValues(int theObject, ReflectedAttributes theAttributes, byte[] tag, LogicalTime theTime, EventRetractionHandle retractionHandle) {
-        System.out.println("Update: " + theObject);
+
     }
 
     @Override
-    public String getName() {
-        return "Tank";
+    protected String getName() {
+        return "Target";
     }
-
 }

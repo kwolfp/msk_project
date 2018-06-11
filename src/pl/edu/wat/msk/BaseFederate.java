@@ -26,7 +26,7 @@ public abstract class BaseFederate<T extends BaseAmbassador> {
 
     protected RTIambassador rtiamb;
     protected T fedamb;
-    private final double timeStep           = 10.0;
+    protected final double timeStep               = 10.0;
 
 
     public void runFederate() throws Exception {
@@ -78,21 +78,12 @@ public abstract class BaseFederate<T extends BaseAmbassador> {
         registerObjects();
 
         while (fedamb.running) {
-            double timeToAdvance = fedamb.federateTime + timeStep;
-            advanceTime(timeToAdvance);
-
-            if(fedamb.grantedTime == timeToAdvance) {
-                timeToAdvance += fedamb.federateLookahead;
-                log("Updating stock at time: " + timeToAdvance);
-                onUpdate(timeToAdvance);
-                fedamb.federateTime = timeToAdvance;
-            }
-
+            update();
             rtiamb.tick();
         }
     }
 
-    protected abstract void onUpdate(double time) throws Exception;
+    protected abstract void update() throws Exception;
 
     protected abstract void registerObjects() throws RTIexception;
 
@@ -162,9 +153,7 @@ public abstract class BaseFederate<T extends BaseAmbassador> {
         System.out.println( getName()+"Federate   : " + message );
     }
 
-    protected String getName() {
-        return "Base";
-    }
+    protected abstract String getName();
 
     @SuppressWarnings("unchecked")
     private T getInstanceOfAmbassador() {

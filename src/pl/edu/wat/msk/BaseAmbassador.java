@@ -74,9 +74,7 @@ public abstract class BaseAmbassador extends NullFederateAmbassador {
 
     }
 
-    protected String getName() {
-        return "Base";
-    }
+    protected abstract String getName();
 
     public void setEndSimulationInteractionHandle(int handle) {
         this.endSimulationInteractionHendle = handle;
@@ -98,4 +96,7 @@ public abstract class BaseAmbassador extends NullFederateAmbassador {
         this.isAdvancing = false;
     }
 
+    public double getGrantedTime() {
+        return grantedTime;
+    }
 }
