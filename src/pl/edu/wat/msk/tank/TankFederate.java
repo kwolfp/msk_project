@@ -14,30 +14,25 @@ import pl.edu.wat.msk.BaseFederate;
  */
 public class TankFederate extends BaseFederate<TankAmbassador> {
 
-    private int czolObjHandle = 0;
+    private int czolObjHandle                = 0;
+    private int celAttrPolozenieHandle       = 0;
+    private int celAttrPoziomUszkodzenHandle = 0;
+    private int celAttrNiezdatnyHandle       = 0;
 
 
     @Override
-    protected void update() throws Exception {
-        double timeToAdvance = fedamb.federateTime + timeStep;
-        advanceTime(timeToAdvance);
+    protected void update(double time) throws Exception {
+        log("Updating czolObj at time: " + time);
 
-        if(fedamb.getGrantedTime() == timeToAdvance) {
-            timeToAdvance += fedamb.federateLookahead;
-            log("Updating czolObj at time: " + timeToAdvance);
+        SuppliedAttributes attributes = RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
 
-            SuppliedAttributes attributes = RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
+        int classHandle = rtiamb.getObjectClass(czolObjHandle);
+        int stockHandle = rtiamb.getAttributeHandle( "Polozenie", classHandle );
+        byte[] stockValue = EncodingHelpers.encodeInt(123);
 
-            int classHandle = rtiamb.getObjectClass(czolObjHandle);
-            int stockHandle = rtiamb.getAttributeHandle( "Polozenie", classHandle );
-            byte[] stockValue = EncodingHelpers.encodeInt(123);
-
-            attributes.add(stockHandle, stockValue);
-            LogicalTime logicalTime = convertTime( timeToAdvance );
-            rtiamb.updateAttributeValues( czolObjHandle, attributes, "actualize stock".getBytes(), logicalTime );
-
-            fedamb.federateTime = timeToAdvance;
-        }
+        attributes.add(stockHandle, stockValue);
+        LogicalTime logicalTime = convertTime( time );
+        rtiamb.updateAttributeValues( czolObjHandle, attributes, "actualize stock".getBytes(), logicalTime );
     }
 
     protected void sendInteraction(double timeStep) throws RTIexception {
@@ -71,14 +66,19 @@ public class TankFederate extends BaseFederate<TankAmbassador> {
 
         // subskrypcja obj Cel
         int celHandle = rtiamb.getObjectClassHandle("ObjectRoot.Cel");
-        int polozenieHandle2 = rtiamb.getAttributeHandle( "Polozenie", celHandle );
-        int poziomUszkodzenHandle2 = rtiamb.getAttributeHandle( "PoziomUszkodzen", celHandle );
-        int niezdatnyHandle2 = rtiamb.getAttributeHandle( "Niezdatny", celHandle );
+        celAttrPolozenieHandle = rtiamb.getAttributeHandle( "Polozenie", celHandle );
+        celAttrPoziomUszkodzenHandle = rtiamb.getAttributeHandle( "PoziomUszkodzen", celHandle );
+        celAttrNiezdatnyHandle = rtiamb.getAttributeHandle( "Niezdatny", celHandle );
+
+        fedamb.setCelObjHandle(celHandle);
+        fedamb.setCelAttrPolozenieHandle(celAttrPolozenieHandle);
+        fedamb.setCelAttrPoziomUszkodzenHandle(celAttrPoziomUszkodzenHandle);
+        fedamb.setCelAttrNiezdatnyHandle(celAttrNiezdatnyHandle);
 
         AttributeHandleSet attributes2 = RtiFactoryFactory.getRtiFactory().createAttributeHandleSet();
-        attributes2.add( polozenieHandle2 );
-        attributes2.add( poziomUszkodzenHandle2 );
-        attributes2.add( niezdatnyHandle2 );
+        attributes2.add( celAttrPolozenieHandle );
+        attributes2.add( celAttrPoziomUszkodzenHandle );
+        attributes2.add( celAttrNiezdatnyHandle );
 
         rtiamb.subscribeObjectClassAttributes(celHandle, attributes2);
     }

@@ -1,11 +1,11 @@
 package pl.edu.wat.msk;
 
-import hla.rti.EventRetractionHandle;
-import hla.rti.LogicalTime;
-import hla.rti.ReceivedInteraction;
-import hla.rti.ReflectedAttributes;
+import hla.rti.*;
 import hla.rti.jlc.NullFederateAmbassador;
 import org.portico.impl.hla13.types.DoubleTime;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Kamil Przyborowski
@@ -28,6 +28,8 @@ public abstract class BaseAmbassador extends NullFederateAmbassador {
     public boolean running 			   = true;
 
     protected int endSimulationInteractionHendle = 0;
+
+    protected Map<Integer, Integer> objs = new HashMap<>();
 
 
     protected double convertTime( LogicalTime logicalTime ) {
@@ -72,6 +74,13 @@ public abstract class BaseAmbassador extends NullFederateAmbassador {
 
     public void reflectAttributeValues(int theObject, ReflectedAttributes theAttributes, byte[] tag, LogicalTime theTime, EventRetractionHandle retractionHandle) {
 
+    }
+
+    @Override
+    public void discoverObjectInstance(int theObject, int theObjectClass, String objectName) throws CouldNotDiscover, ObjectClassNotKnown, FederateInternalError {
+        if(!this.objs.containsKey(theObject)) {
+            this.objs.put(theObject, theObjectClass);
+        }
     }
 
     protected abstract String getName();

@@ -78,12 +78,20 @@ public abstract class BaseFederate<T extends BaseAmbassador> {
         registerObjects();
 
         while (fedamb.running) {
-            update();
+            double timeToAdvance = fedamb.federateTime + timeStep;
+            advanceTime(timeToAdvance);
+
+            if(fedamb.getGrantedTime() == timeToAdvance) {
+                timeToAdvance += fedamb.federateLookahead;
+                update(timeToAdvance);
+            }
+
+            fedamb.federateTime = timeToAdvance;
             rtiamb.tick();
         }
     }
 
-    protected abstract void update() throws Exception;
+    protected abstract void update(double time) throws Exception;
 
     protected abstract void registerObjects() throws RTIexception;
 
