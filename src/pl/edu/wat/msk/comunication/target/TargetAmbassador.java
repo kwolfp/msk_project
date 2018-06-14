@@ -1,4 +1,4 @@
-package pl.edu.wat.msk.target;
+package pl.edu.wat.msk.comunication.target;
 
 import hla.rti.EventRetractionHandle;
 import hla.rti.LogicalTime;
@@ -22,8 +22,4 @@ public class TargetAmbassador extends BaseAmbassador {
 
     }
 
-    @Override
-    protected String getName() {
-        return "Target";
-    }
 }

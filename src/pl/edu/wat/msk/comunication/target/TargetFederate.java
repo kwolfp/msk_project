@@ -1,4 +1,4 @@
-package pl.edu.wat.msk.target;
+package pl.edu.wat.msk.comunication.target;
 
 import hla.rti.*;
 import hla.rti.jlc.EncodingHelpers;
@@ -83,11 +83,6 @@ public class TargetFederate extends BaseFederate<TargetAmbassador> {
         attributes.add( niezdatnyHandle );
 
         rtiamb.publishObjectClass(classHandle, attributes);
-    }
-
-    @Override
-    protected String getName() {
-        return "Target";
     }
 
     public static void main(String[] args) {

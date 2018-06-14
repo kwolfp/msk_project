@@ -1,4 +1,4 @@
-package pl.edu.wat.msk.weather;
+package pl.edu.wat.msk.comunication.weather;
 
 import hla.rti.AttributeHandleSet;
 import hla.rti.LogicalTime;
@@ -45,11 +45,6 @@ public class WeatherFederate extends BaseFederate<WeatherAmbassador> {
         attributes.add( kierunekWiatruHandle );
 
         rtiamb.publishObjectClass(classHandle, attributes);
-    }
-
-    @Override
-    protected String getName() {
-        return "Weather";
     }
 
     public static void main(String[] args) {

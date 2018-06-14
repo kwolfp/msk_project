@@ -37,7 +37,7 @@ public abstract class BaseAmbassador extends NullFederateAmbassador {
     }
 
     protected void log( String message ) {
-        System.out.println( getName()+"Ambassador: " + message );
+        System.out.println( getName()+": " + message );
     }
 
     public void synchronizationPointRegistrationFailed( String label ) {
@@ -83,7 +83,9 @@ public abstract class BaseAmbassador extends NullFederateAmbassador {
         }
     }
 
-    protected abstract String getName();
+    protected String getName() {
+        return this.getClass().getName();
+    }
 
     public void setEndSimulationInteractionHandle(int handle) {
         this.endSimulationInteractionHendle = handle;

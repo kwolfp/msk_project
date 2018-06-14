@@ -1,4 +1,4 @@
-package pl.edu.wat.msk.tank;
+package pl.edu.wat.msk.comunication.tank;
 
 import hla.rti.AttributeHandleSet;
 import hla.rti.LogicalTime;
@@ -81,11 +81,6 @@ public class TankFederate extends BaseFederate<TankAmbassador> {
         attributes2.add( celAttrNiezdatnyHandle );
 
         rtiamb.subscribeObjectClassAttributes(celHandle, attributes2);
-    }
-
-    @Override
-    public String getName() {
-        return "Tank";
     }
 
     public static void main(String[] args) {

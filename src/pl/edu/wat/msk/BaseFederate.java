@@ -51,8 +51,8 @@ public abstract class BaseFederate<T extends BaseAmbassador> {
         }
 
         fedamb = getInstanceOfAmbassador();
-        rtiamb.joinFederationExecution( getName()+"Federate", FEDERATION_NAME, fedamb );
-        log( "Joined Federation as "+getName()+"Federate");
+        rtiamb.joinFederationExecution( getName(), FEDERATION_NAME, fedamb );
+        log( "Joined Federation as "+getName());
 
         rtiamb.registerFederationSynchronizationPoint( READY_TO_RUN, null );
 
@@ -161,7 +161,9 @@ public abstract class BaseFederate<T extends BaseAmbassador> {
         System.out.println( getName()+"Federate   : " + message );
     }
 
-    protected abstract String getName();
+    protected String getName() {
+        return this.getClass().getName();
+    }
 
     @SuppressWarnings("unchecked")
     private T getInstanceOfAmbassador() {

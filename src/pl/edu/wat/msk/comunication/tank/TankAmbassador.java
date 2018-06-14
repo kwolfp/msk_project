@@ -1,4 +1,4 @@
-package pl.edu.wat.msk.tank;
+package pl.edu.wat.msk.comunication.tank;
 
 import hla.rti.*;
 import hla.rti.jlc.EncodingHelpers;
@@ -51,11 +51,6 @@ public class TankAmbassador extends BaseAmbassador {
             System.out.println(targetObj.getPoziomUszkodzen());
             System.out.println(targetObj.getNiezdatny());
         }
-    }
-
-    @Override
-    public String getName() {
-        return "Tank";
     }
 
     public void setCelAttrPolozenieHandle(int celAttrPolozenieHandle) {
