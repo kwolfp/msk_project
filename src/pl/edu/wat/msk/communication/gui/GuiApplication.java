@@ -22,6 +22,8 @@ public class GuiApplication extends Application {
     @FXML public MenuItem startBtn;
     @FXML public MenuItem stopBtn;
 
+    @FXML public Label simTime;
+
     @FXML public Label tankRodzaj;
     @FXML public Label tankWielkosc;
     @FXML public Label tankPolozenie;

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.text.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.geometry.*?>
 <?import java.lang.*?>
@@ -106,5 +107,15 @@
             <Label fx:id="weatherKierunekWiatru" layoutX="155.0" layoutY="46.0" text="Label" />
          </children>
       </Pane>
+      <Label layoutX="14.0" layoutY="629.0" text="SimTime:">
+         <font>
+            <Font size="20.0" />
+         </font>
+      </Label>
+      <Label fx:id="simTime" layoutX="101.0" layoutY="629.0" text="Label">
+         <font>
+            <Font name="System Bold" size="20.0" />
+         </font>
+      </Label>
    </children>
 </AnchorPane>

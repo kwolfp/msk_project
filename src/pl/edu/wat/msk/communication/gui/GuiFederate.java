@@ -50,6 +50,10 @@ public class GuiFederate extends BaseFederate<GuiAmbassador> {
 
     @Override
     protected void update(double time) throws Exception {
+        Platform.runLater(() -> {
+            this.guiApplication.simTime.setText(this.federationAmbassador.federateTime+"");
+        });
+
         // Bullet ---------------------------------------------------------------------------------
         if(this.federationAmbassador.bulletClassFlag_newInstance) {
             // pojawił się nowy obiekty typu Cel

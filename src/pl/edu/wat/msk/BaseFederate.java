@@ -120,7 +120,7 @@ public abstract class BaseFederate<T extends BaseAmbassador> {
     }
 
     protected void advanceTime( double timestep ) throws RTIexception {
-        log("requesting time advance for: " + (federationAmbassador.federateTime + timestep));
+//        log("requesting time advance for: " + (federationAmbassador.federateTime + timestep));
         // request the advance
         federationAmbassador.isAdvancing = true;
         LogicalTime newTime = convertTime( federationAmbassador.federateTime + timestep );
