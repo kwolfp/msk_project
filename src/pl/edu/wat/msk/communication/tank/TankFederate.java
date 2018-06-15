@@ -92,6 +92,11 @@ public class TankFederate extends BaseFederate<TankAmbassador> {
         rtiAmbassador.subscribeObjectClassAttributes(this.federationAmbassador.targetClass, attributes2);
     }
 
+    @Override
+    protected void deleteObjectsAndInteractions() throws Exception {
+        this.removeObj(this.tankObj);
+    }
+
     private void updateTankObj_Rodzaj(String value, double time) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, ObjectClassNotDefined, ObjectNotKnown, RestoreInProgress, AttributeNotOwned, AttributeNotDefined, SaveInProgress, InvalidFederationTime, ConcurrentAccessAttempted {
         SuppliedAttributes attributes = RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
         int classHandle = rtiAmbassador.getObjectClass(this.tankObj);
