@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.edu.wat.msk.communication.gui.GuiApplication">
+   <children>
+      <MenuBar layoutX="33.0" layoutY="73.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Close" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Simulation">
+            <items>
+              <MenuItem mnemonicParsing="false" fx:id="startBtn" onAction="#startSimBtn" text="Start" />
+              <MenuItem mnemonicParsing="false" fx:id="stopBtn" disable="true" onAction="#stopSimBtn" text="Stop" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Help">
+            <items>
+              <MenuItem mnemonicParsing="false" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <Pane layoutX="98.0" layoutY="189.0" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: red;">
+         <children>
+            <ImageView fitHeight="109.0" fitWidth="130.0" layoutX="35.0" layoutY="91.0" pickOnBounds="true" preserveRatio="true" />
+            <Label layoutX="35.0" layoutY="4.0" text="Pozycja" />
+         </children>
+      </Pane>
+   </children>
+</AnchorPane>

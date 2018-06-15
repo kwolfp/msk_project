@@ -1,4 +1,4 @@
-package pl.edu.wat.msk.comunication.weather;
+package pl.edu.wat.msk.communication.weather;
 
 import pl.edu.wat.msk.BaseAmbassador;
 

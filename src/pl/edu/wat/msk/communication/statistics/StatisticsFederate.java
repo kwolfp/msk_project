@@ -1,4 +1,4 @@
-package pl.edu.wat.msk.comunication.bullet;
+package pl.edu.wat.msk.communication.statistics;
 
 import hla.rti.RTIexception;
 import pl.edu.wat.msk.BaseFederate;
@@ -7,14 +7,9 @@ import pl.edu.wat.msk.BaseFederate;
  * Created by Kamil Przyborowski
  * Wojskowa Akademia Techniczna im. Jarosława Dąbrowskiego, Warszawa 2018.
  */
-public class BulletFederate extends BaseFederate<BulletAmbassador> {
+public class StatisticsFederate extends BaseFederate<StatisticsAmbassador> {
     @Override
     protected void update(double time) throws Exception {
-
-    }
-
-    @Override
-    protected void registerObjects() throws RTIexception {
 
     }
 
@@ -23,9 +18,14 @@ public class BulletFederate extends BaseFederate<BulletAmbassador> {
 
     }
 
+    @Override
+    protected void deleteObjectsAndInteractions() {
+
+    }
+
     public static void main(String[] args) {
         try {
-            new BulletFederate().runFederate();
+            new StatisticsFederate().runFederate();
         } catch (Exception e) {
             e.printStackTrace();
         }

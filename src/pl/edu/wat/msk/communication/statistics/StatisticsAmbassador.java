@@ -1,4 +1,4 @@
-package pl.edu.wat.msk.comunication.defense.system;
+package pl.edu.wat.msk.communication.statistics;
 
 import pl.edu.wat.msk.BaseAmbassador;
 
@@ -6,5 +6,5 @@ import pl.edu.wat.msk.BaseAmbassador;
  * Created by Kamil Przyborowski
  * Wojskowa Akademia Techniczna im. Jarosława Dąbrowskiego, Warszawa 2018.
  */
-public class DefenseSystemAmbassador extends BaseAmbassador {
+public class StatisticsAmbassador extends BaseAmbassador {
 }

@@ -5,13 +5,12 @@ import hla.rti.LogicalTime;
 import hla.rti.LogicalTimeInterval;
 import hla.rti.RTIambassador;
 import hla.rti.RTIexception;
+import hla.rti.ResignAction;
 import hla.rti.jlc.RtiFactoryFactory;
 import org.portico.impl.hla13.types.DoubleTime;
 import org.portico.impl.hla13.types.DoubleTimeInterval;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
 import java.lang.reflect.ParameterizedType;
 import java.net.MalformedURLException;
 
@@ -21,152 +20,118 @@ import java.net.MalformedURLException;
  */
 public abstract class BaseFederate<T extends BaseAmbassador> {
 
-    protected static final String FEDERATION_NAME = "MskProjectFederation";
-    protected static final String READY_TO_RUN    = "ReadyToRun";
+    protected static final String FED_DEFAULT_FILE = "msk.fed";
+    protected static final String FEDERATION_NAME  = "MskProjectFederation";
 
-    protected RTIambassador rtiamb;
-    protected T fedamb;
-    protected final double timeStep               = 10.0;
+    protected RTIambassador rtiAmbassador;
+    protected T federationAmbassador;
+    protected final double timeStep                = 10.0;
 
 
     public void runFederate() throws Exception {
-        rtiamb = RtiFactoryFactory.getRtiFactory().createRtiAmbassador();
+        this.rtiAmbassador = RtiFactoryFactory.getRtiFactory().createRtiAmbassador();
 
-        try
-        {
-            File fom = new File( "msk.fed" );
-            rtiamb.createFederationExecution( FEDERATION_NAME,
-                    fom.toURI().toURL() );
+        this.tryCreateFederation(FED_DEFAULT_FILE);
+
+        this.createAmbassadorAndJoin();
+
+        this.waitForSimulationStart();
+
+        this.enableTimePolicy();
+
+        this.publishAndSubscribeDefault();
+        this.publishAndSubscribe();
+
+        this.init();
+
+        while (federationAmbassador.running) {
+            this.mainLoop();
+            rtiAmbassador.tick();
+        }
+
+        this.destroyFederation();
+    }
+
+    protected void init() throws Exception {
+
+    }
+
+    protected void mainLoop() throws Exception {
+        double timeToAdvance = federationAmbassador.federateTime + timeStep;
+        advanceTime(timeStep);
+
+        if(federationAmbassador.getGrantedTime() == timeToAdvance) {
+            timeToAdvance += federationAmbassador.federateLookahead;
+            update(timeToAdvance);
+        }
+
+        federationAmbassador.federateTime = timeToAdvance;
+    }
+
+    protected void tryCreateFederation(String fedFilePath) throws Exception {
+        try {
+            File fom = new File( fedFilePath );
+            rtiAmbassador.createFederationExecution( FEDERATION_NAME, fom.toURI().toURL() );
             log( "Created Federation" );
-        }
-        catch( FederationExecutionAlreadyExists exists )
-        {
+        } catch( FederationExecutionAlreadyExists exists ) {
             log( "Didn't create federation, it already existed" );
-        }
-        catch( MalformedURLException urle )
-        {
+        } catch( MalformedURLException urle ) {
             log( "Exception processing fom: " + urle.getMessage() );
             urle.printStackTrace();
-            return;
-        }
-
-        fedamb = getInstanceOfAmbassador();
-        rtiamb.joinFederationExecution( getName(), FEDERATION_NAME, fedamb );
-        log( "Joined Federation as "+getName());
-
-        rtiamb.registerFederationSynchronizationPoint( READY_TO_RUN, null );
-
-        while(!fedamb.isAnnounced)
-        {
-            rtiamb.tick();
-        }
-
-        waitForUser();
-
-        rtiamb.synchronizationPointAchieved( READY_TO_RUN );
-        log( "Achieved sync point: " +READY_TO_RUN+ ", waiting for federation..." );
-        while(!fedamb.isReadyToRun)
-        {
-            rtiamb.tick();
-        }
-
-        enableTimePolicy();
-
-        publishAndSubscribeDefault();
-        publishAndSubscribe();
-
-        registerObjects();
-
-        while (fedamb.running) {
-            double timeToAdvance = fedamb.federateTime + timeStep;
-            advanceTime(timeToAdvance);
-
-            if(fedamb.getGrantedTime() == timeToAdvance) {
-                timeToAdvance += fedamb.federateLookahead;
-                update(timeToAdvance);
-            }
-
-            fedamb.federateTime = timeToAdvance;
-            rtiamb.tick();
         }
     }
 
-    protected abstract void update(double time) throws Exception;
+    protected void createAmbassadorAndJoin() throws Exception {
+        this.federationAmbassador = getInstanceOfAmbassador();
+        rtiAmbassador.joinFederationExecution( getName(), FEDERATION_NAME, federationAmbassador);
+        log( "Joined Federation as "+getName());
+    }
 
-    protected abstract void registerObjects() throws RTIexception;
+    protected void waitForSimulationStart() throws Exception {
+        int startSimulation = rtiAmbassador.getInteractionClassHandle("InteractionRoot.PoczatekSymulacji");
+        federationAmbassador.setStartSimulationInteractionHandle(startSimulation);
+        rtiAmbassador.subscribeInteractionClass(startSimulation);
 
-    protected void waitForUser() {
-        log( " >>>>>>>>>> Press Enter to Continue <<<<<<<<<<" );
-        BufferedReader reader = new BufferedReader( new InputStreamReader(System.in) );
-        try
-        {
-            reader.readLine();
-        }
-        catch( Exception e )
-        {
-            log( "Error while waiting for user input: " + e.getMessage() );
-            e.printStackTrace();
+        log("Waiting for simulation start interaction...");
+        while(!federationAmbassador.isReadyToRun) {
+            rtiAmbassador.tick();
         }
     }
 
     protected void enableTimePolicy() throws RTIexception {
-        LogicalTime currentTime = convertTime( fedamb.federateTime );
-        LogicalTimeInterval lookahead = convertInterval( fedamb.federateLookahead );
+        LogicalTime currentTime = convertTime(federationAmbassador.federateTime);
+        LogicalTimeInterval lookahead = convertInterval(federationAmbassador.federateLookahead);
 
-        this.rtiamb.enableTimeRegulation( currentTime, lookahead );
-
-        while(!fedamb.isRegulating)
-        {
-            rtiamb.tick();
+        this.rtiAmbassador.enableTimeRegulation(currentTime, lookahead);
+        while(!federationAmbassador.isRegulating) {
+            rtiAmbassador.tick();
         }
 
-        this.rtiamb.enableTimeConstrained();
-
-        while(!fedamb.isConstrained)
-        {
-            rtiamb.tick();
+        this.rtiAmbassador.enableTimeConstrained();
+        while(!federationAmbassador.isConstrained) {
+            rtiAmbassador.tick();
         }
     }
 
-    protected abstract void publishAndSubscribe() throws RTIexception;
-
     protected void publishAndSubscribeDefault() throws RTIexception {
-        int endSimulation = rtiamb.getInteractionClassHandle("InteractionRoot.KoniecSymulacji");
-        fedamb.setEndSimulationInteractionHandle(endSimulation);
-        rtiamb.subscribeInteractionClass(endSimulation);
+        int endSimulation = rtiAmbassador.getInteractionClassHandle("InteractionRoot.KoniecSymulacji");
+        federationAmbassador.setEndSimulationInteractionHandle(endSimulation);
+        rtiAmbassador.subscribeInteractionClass(endSimulation);
     }
 
     protected void advanceTime( double timestep ) throws RTIexception {
-        log("requesting time advance for: " + timestep);
+        log("requesting time advance for: " + (federationAmbassador.federateTime + timestep));
         // request the advance
-        fedamb.isAdvancing = true;
-        LogicalTime newTime = convertTime( fedamb.federateTime + timestep );
-        rtiamb.timeAdvanceRequest( newTime );
-        while( fedamb.isAdvancing )
-        {
-            rtiamb.tick();
+        federationAmbassador.isAdvancing = true;
+        LogicalTime newTime = convertTime( federationAmbassador.federateTime + timestep );
+        rtiAmbassador.timeAdvanceRequest( newTime );
+        while(federationAmbassador.isAdvancing && federationAmbassador.running) {
+            rtiAmbassador.tick();
         }
     }
 
-    protected LogicalTime convertTime( double time ) {
-        return new DoubleTime( time );
-    }
-
-    protected LogicalTimeInterval convertInterval( double time ) {
-        // PORTICO SPECIFIC!!
-        return new DoubleTimeInterval( time );
-    }
-
-    protected void log( String message ) {
-        System.out.println( getName()+"Federate   : " + message );
-    }
-
-    protected String getName() {
-        return this.getClass().getName();
-    }
-
     @SuppressWarnings("unchecked")
-    private T getInstanceOfAmbassador() {
+    protected T getInstanceOfAmbassador() {
         try {
             ParameterizedType superClass = (ParameterizedType) getClass().getGenericSuperclass();
             Class<T> type = (Class<T>) superClass.getActualTypeArguments()[0];
@@ -175,6 +140,45 @@ public abstract class BaseFederate<T extends BaseAmbassador> {
             e.printStackTrace();
         }
         return null;
+    }
+
+    protected abstract void update(double time) throws Exception;
+
+    protected abstract void publishAndSubscribe() throws RTIexception;
+
+    protected LogicalTimeInterval convertInterval(double time ) {
+        return new DoubleTimeInterval( time );
+    }
+
+    protected LogicalTime convertTime( double time ) {
+        return new DoubleTime( time );
+    }
+
+    protected void log( String message ) {
+        System.out.printf("%s: %s%n", getName(), message);
+    }
+
+    protected String getName() {
+        return this.getClass().getSimpleName();
+    }
+
+    protected void destroyFederation() throws Exception {
+        deleteObjectsAndInteractions();
+        rtiAmbassador.resignFederationExecution(ResignAction.NO_ACTION);
+        rtiAmbassador.destroyFederationExecution(FEDERATION_NAME);
+    }
+
+    protected void deleteObjectsAndInteractions() throws Exception {
+
+    }
+
+    protected int createObj(String name) throws Exception {
+        int classHandle = rtiAmbassador.getObjectClassHandle("ObjectRoot."+name);
+        return rtiAmbassador.registerObjectInstance(classHandle);
+    }
+
+    protected void removeObj(int instance) throws Exception {
+        rtiAmbassador.deleteObjectInstance(instance, "tag".getBytes());
     }
 
 }

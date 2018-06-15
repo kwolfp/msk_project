@@ -2,7 +2,7 @@ package pl.edu.wat.msk.object;
 
 import pl.edu.wat.msk.util.Vec3;
 
-public class Target {
+public class Target extends BaseObject {
 
     private Vec3 polozenie;
     private Integer poziomUszkodzen;

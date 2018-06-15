@@ -1,8 +1,17 @@
 package pl.edu.wat.msk;
 
-import hla.rti.*;
+import hla.rti.CouldNotDiscover;
+import hla.rti.EventRetractionHandle;
+import hla.rti.FederateInternalError;
+import hla.rti.InvalidFederationTime;
+import hla.rti.LogicalTime;
+import hla.rti.ObjectClassNotKnown;
+import hla.rti.ObjectNotKnown;
+import hla.rti.ReceivedInteraction;
+import hla.rti.ReflectedAttributes;
 import hla.rti.jlc.NullFederateAmbassador;
 import org.portico.impl.hla13.types.DoubleTime;
+import pl.edu.wat.msk.object.BaseObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,56 +31,38 @@ public abstract class BaseAmbassador extends NullFederateAmbassador {
     public boolean isConstrained      = false;
     public boolean isAdvancing        = false;
 
-    public boolean isAnnounced        = false;
     public boolean isReadyToRun       = false;
 
     public boolean running 			   = true;
 
-    protected int endSimulationInteractionHendle = 0;
+    protected int endSimulationInteractionHandle   = 0;
+    protected int startSimulationInteractionHandle = 0;
 
     protected Map<Integer, Integer> objs = new HashMap<>();
+    protected Map<Class<? extends BaseObject>, BaseObject> objectsInstance = new HashMap<>();
 
 
-    protected double convertTime( LogicalTime logicalTime ) {
-        return ((DoubleTime)logicalTime).getTime();
-    }
-
-    protected void log( String message ) {
-        System.out.println( getName()+": " + message );
-    }
-
-    public void synchronizationPointRegistrationFailed( String label ) {
-        log( "Failed to register sync point: " + label );
-    }
-
-    public void synchronizationPointRegistrationSucceeded( String label ) {
-        log( "Successfully registered sync point: " + label );
-    }
-
-    public void announceSynchronizationPoint( String label, byte[] tag ) {
-        log( "Synchronization point announced: " + label );
-        if( label.equals(BaseFederate.READY_TO_RUN) )
-            this.isAnnounced = true;
-    }
-
-    public void federationSynchronized( String label ) {
-        log( "Federation Synchronized: " + label );
-        if( label.equals(BaseFederate.READY_TO_RUN) )
-            this.isReadyToRun = true;
-    }
-
+    @Override
     public void receiveInteraction( int interactionClass, ReceivedInteraction theInteraction, byte[] tag ) {
         receiveInteraction(interactionClass, theInteraction, tag, null, null);
     }
 
+    @Override
     public void receiveInteraction( int interactionClass, ReceivedInteraction theInteraction, byte[] tag, LogicalTime theTime, EventRetractionHandle eventRetractionHandle ) {
-
+        System.out.printf("%s: odebranie interacji %d%n", getName(), interactionClass);
+        if(interactionClass == this.startSimulationInteractionHandle) {
+            this.isReadyToRun = true;
+        } else if (interactionClass == this.endSimulationInteractionHandle) {
+            this.running = false;
+        }
     }
 
+    @Override
     public void reflectAttributeValues(int theObject, ReflectedAttributes theAttributes, byte[] tag) {
         reflectAttributeValues(theObject, theAttributes, tag, null, null);
     }
 
+    @Override
     public void reflectAttributeValues(int theObject, ReflectedAttributes theAttributes, byte[] tag, LogicalTime theTime, EventRetractionHandle retractionHandle) {
 
     }
@@ -83,24 +74,42 @@ public abstract class BaseAmbassador extends NullFederateAmbassador {
         }
     }
 
-    protected String getName() {
-        return this.getClass().getName();
+    @Override
+    public void removeObjectInstance(int theObject, byte[] userSuppliedTag) throws ObjectNotKnown, FederateInternalError {
+        try {
+            removeObjectInstance(theObject, userSuppliedTag, null, null);
+        } catch (InvalidFederationTime invalidFederationTime) {
+            invalidFederationTime.printStackTrace();
+        }
+    }
+
+    @Override
+    public void removeObjectInstance(int theObject, byte[] userSuppliedTag, LogicalTime theTime, EventRetractionHandle retractionHandle) throws ObjectNotKnown, InvalidFederationTime, FederateInternalError {
+        this.objs.remove(theObject);
+        this.objectsInstance.remove(theObject);
     }
 
     public void setEndSimulationInteractionHandle(int handle) {
-        this.endSimulationInteractionHendle = handle;
+        this.endSimulationInteractionHandle = handle;
     }
 
-    public void timeRegulationEnabled( LogicalTime theFederateTime ) {
+    public void setStartSimulationInteractionHandle(int startSimulationInteractionHandle) {
+        this.startSimulationInteractionHandle = startSimulationInteractionHandle;
+    }
+
+    @Override
+    public void timeRegulationEnabled(LogicalTime theFederateTime ) {
         this.federateTime = convertTime( theFederateTime );
         this.isRegulating = true;
     }
 
+    @Override
     public void timeConstrainedEnabled( LogicalTime theFederateTime ) {
         this.federateTime = convertTime( theFederateTime );
         this.isConstrained = true;
     }
 
+    @Override
     public void timeAdvanceGrant( LogicalTime theTime ) {
         this.federateTime = convertTime( theTime );
         this.grantedTime = convertTime(theTime);
@@ -109,5 +118,21 @@ public abstract class BaseAmbassador extends NullFederateAmbassador {
 
     public double getGrantedTime() {
         return grantedTime;
+    }
+
+    public <T extends BaseObject> T getObjectInstance(Class<T> tClass) {
+        return tClass.cast(this.objectsInstance.get(tClass));
+    }
+
+    protected double convertTime(LogicalTime logicalTime ) {
+        return ((DoubleTime)logicalTime).getTime();
+    }
+
+    protected void log( String message ) {
+        System.out.println( getName()+": " + message );
+    }
+
+    protected String getName() {
+        return this.getClass().getSimpleName();
     }
 }
