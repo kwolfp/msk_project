@@ -45,7 +45,7 @@ public class TankFederate extends BaseFederate<TankAmbassador> {
 
         // Tu jakaś symulacja a jej wyniki można przesłać za pomocą metod
 //        updateTankObj_Polozenie(new Vec3(1,1,1), time);
-        updateTankObj_Rodzaj("af", time);
+//        updateTankObj_Rodzaj("af", time);
 //        updateTankObj_Wielkosc(new Vec3(1, 2, 3), time);
 //        updateTankObj_WRuchu(true, time);
 //        updateTankObj_WystrzeleniePocisku(false, time);

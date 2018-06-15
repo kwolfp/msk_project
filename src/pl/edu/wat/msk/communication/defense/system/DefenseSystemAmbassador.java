@@ -23,7 +23,6 @@ public class DefenseSystemAmbassador extends BaseAmbassador {
     public int bulletAttr_Wielkosc  = 0;
     public int bulletAttr_Polozenie = 0;
     public int bulletAttr_WRuchu    = 0;
-
     public boolean bulletClassFlag_newInstance  = false;
     public boolean bulletClassFlag_attrsUpdated = false;
 

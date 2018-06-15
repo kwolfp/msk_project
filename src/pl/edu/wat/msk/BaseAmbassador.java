@@ -49,7 +49,6 @@ public abstract class BaseAmbassador extends NullFederateAmbassador {
 
     @Override
     public void receiveInteraction( int interactionClass, ReceivedInteraction theInteraction, byte[] tag, LogicalTime theTime, EventRetractionHandle eventRetractionHandle ) {
-        System.out.printf("%s: odebranie interacji %d%n", getName(), interactionClass);
         if(interactionClass == this.startSimulationInteractionHandle) {
             this.isReadyToRun = true;
         } else if (interactionClass == this.endSimulationInteractionHandle) {

@@ -65,16 +65,12 @@ public class BulletFederate extends BaseFederate<BulletAmbassador> {
             // pojawił się nowy obiekty typu Czolg
             Tank tank = this.federationAmbassador.getObjectInstance(Tank.class);
             this.federationAmbassador.tankClassFlag_newInstance = false;
-
-            System.out.println("Nowy czołg!");
         }
 
         if(this.federationAmbassador.tankClassFlag_attrsUpdated) {
             // zaktualizowano atrybut obiektu Czolg
             Tank tank = this.federationAmbassador.getObjectInstance(Tank.class);
             this.federationAmbassador.tankClassFlag_attrsUpdated = false;
-
-            System.out.printf("Nowa wartość dla Czołg: %s%n", tank.getRodzaj());
         }
 
         // DefenseSystemBullet ---------------------------------------------------------------------------------

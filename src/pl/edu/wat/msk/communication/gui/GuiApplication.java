@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
 
@@ -20,6 +21,28 @@ public class GuiApplication extends Application {
 
     @FXML public MenuItem startBtn;
     @FXML public MenuItem stopBtn;
+
+    @FXML public Label tankRodzaj;
+    @FXML public Label tankWielkosc;
+    @FXML public Label tankPolozenie;
+    @FXML public Label tankWRuchu;
+    @FXML public Label tankWystrzeleniePocisku;
+
+    @FXML public Label bulletRodzaj;
+    @FXML public Label bulletWielkosc;
+    @FXML public Label bulletPolozenie;
+    @FXML public Label bulletWRuchu;
+
+    @FXML public Label targetPolozenie;
+    @FXML public Label targetPoziomUszkodzen;
+    @FXML public Label targetNiezdatny;
+
+    @FXML public Label defenseSystemBulletPolozenie;
+    @FXML public Label defenseSystemBulletWRuchu;
+
+    @FXML public Label weatherWielkoscOpadow;
+    @FXML public Label weatherSilaWiatru;
+    @FXML public Label weatherKierunekWiatru;
 
 
     @Override
@@ -43,7 +66,7 @@ public class GuiApplication extends Application {
     void startSimBtn(ActionEvent event) {
         this.startBtn.setDisable(true);
         this.stopBtn.setDisable(false);
-        this.guiFederate = new GuiFederate();
+        this.guiFederate = new GuiFederate(this);
         new Thread(() -> {
             try {
                 this.guiFederate.runFederate();

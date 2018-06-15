@@ -56,8 +56,6 @@ public class BulletAmbassador extends BaseAmbassador {
 
     @Override
     public void reflectAttributeValues(int theObject, ReflectedAttributes theAttributes, byte[] tag, LogicalTime theTime, EventRetractionHandle retractionHandle) {
-        System.out.printf("theObject: %d  class: %d, %d%n", theObject, this.objs.get(theObject), this.tankClass);
-
         if(this.objs.get(theObject) == this.targetClass) {
             Target target = getObjectInstance(Target.class);
             for (int i = 0; i < theAttributes.size(); i++) {
