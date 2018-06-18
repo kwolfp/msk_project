@@ -28,6 +28,7 @@ public class GuiAmbassador extends BaseAmbassador {
     public int bulletAttr_Wielkosc  = 0;
     public int bulletAttr_Polozenie = 0;
     public int bulletAttr_WRuchu    = 0;
+    public int bulletAttr_Zestrzelony    = 0;
     public boolean bulletClassFlag_newInstance  = false;
     public boolean bulletClassFlag_attrsUpdated = false;
 
@@ -82,6 +83,8 @@ public class GuiAmbassador extends BaseAmbassador {
                         bullet.setPolozenie(new Vec3(value));
                     } else if(handle == bulletAttr_WRuchu && value != null) {
                         bullet.setwRuchu(EncodingHelpers.decodeBoolean(value));
+                    } else if(handle == bulletAttr_Zestrzelony && value != null) {
+                        bullet.setZestrzelony(EncodingHelpers.decodeBoolean(value));
                     }
                 } catch (ArrayIndexOutOfBounds aioob) {
                     // won't happen

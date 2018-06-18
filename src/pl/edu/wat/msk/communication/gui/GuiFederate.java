@@ -213,12 +213,14 @@ public class GuiFederate extends BaseFederate<GuiAmbassador> {
         this.federationAmbassador.bulletAttr_Wielkosc = rtiAmbassador.getAttributeHandle( "Wielkosc", this.federationAmbassador.bulletClass);
         this.federationAmbassador.bulletAttr_Polozenie = rtiAmbassador.getAttributeHandle( "Polozenie", this.federationAmbassador.bulletClass);
         this.federationAmbassador.bulletAttr_WRuchu = rtiAmbassador.getAttributeHandle( "WRuchu", this.federationAmbassador.bulletClass);
+        this.federationAmbassador.bulletAttr_Zestrzelony = rtiAmbassador.getAttributeHandle( "Zestrzelony", this.federationAmbassador.bulletClass);
 
         AttributeHandleSet attributes = RtiFactoryFactory.getRtiFactory().createAttributeHandleSet();
         attributes.add( this.federationAmbassador.bulletAttr_Rodzaj);
         attributes.add( this.federationAmbassador.bulletAttr_Wielkosc);
         attributes.add( this.federationAmbassador.bulletAttr_Polozenie);
         attributes.add( this.federationAmbassador.bulletAttr_WRuchu);
+        attributes.add( this.federationAmbassador.bulletAttr_Zestrzelony);
 
         rtiAmbassador.subscribeObjectClassAttributes(this.federationAmbassador.bulletClass, attributes);
 

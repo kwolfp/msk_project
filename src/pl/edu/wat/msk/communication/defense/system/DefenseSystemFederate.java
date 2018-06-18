@@ -20,6 +20,8 @@ import hla.rti.jlc.EncodingHelpers;
 import hla.rti.jlc.RtiFactoryFactory;
 import pl.edu.wat.msk.BaseFederate;
 import pl.edu.wat.msk.object.Bullet;
+import pl.edu.wat.msk.object.Target;
+import pl.edu.wat.msk.object.Weather;
 import pl.edu.wat.msk.util.Vec3;
 
 import java.util.Random;
@@ -37,22 +39,27 @@ public class DefenseSystemFederate extends BaseFederate<DefenseSystemAmbassador>
     private Vec3 posStart;
     private Vec3 pos;
     private Random random = new Random();
+    private boolean remove = false;
 
     @Override
     protected void update(double time) throws Exception {
+        if(remove) {
+            remove = false;
+            removeObj(defenseSystemBulletObj);
+            defenseSystemBulletObj = -1;
+        }
+
         if(this.federationAmbassador.bulletClassFlag_newInstance) {
             // pojawił się nowy obiekty typu Pocisk
             Bullet bullet = this.federationAmbassador.getObjectInstance(Bullet.class);
 
-            System.out.println("Nowy pocisk!");
-
-            if(this.defenseSystemBulletObj != -1) {
+            if(this.defenseSystemBulletObj == -1) {
                 this.defenseSystemBulletObj = createObj("PociskSystemuObronyWroga");
 
-                Vec3 targetPos = bullet.getPolozenie();
-                this.dir = new Vec3(targetPos.getX()-pos.getX(), targetPos.getY()-pos.getY(), targetPos.getZ()-pos.getZ()).normalize();
+                Vec3 bulletPos = bullet.getPolozenie();
                 this.pos = new Vec3(posStart.getX(), posStart.getY(), posStart.getZ());
-                speed = random.nextFloat()*30f;
+                this.dir = new Vec3(bulletPos.getX()-pos.getX(), bulletPos.getY()-pos.getY(), bulletPos.getZ()-pos.getZ()).normalize();
+                speed = random.nextFloat()*250f;
 
                 updateDefenseSystemBulletObj_Polozenie(pos, time);
                 updateDefenseSystemBulletObj_WRuchu(true, time);
@@ -64,8 +71,31 @@ public class DefenseSystemFederate extends BaseFederate<DefenseSystemAmbassador>
         if(this.federationAmbassador.bulletClassFlag_attrsUpdated) {
             // zaktualizowano atrybut obiektu Pocisk
             Bullet bullet = this.federationAmbassador.getObjectInstance(Bullet.class);
+
+            if(!bullet.iswRuchu() && bullet.isZestrzelony()) {
+                remove = true;
+                updateDefenseSystemBulletObj_WRuchu(false, time);
+            }
+
             this.federationAmbassador.bulletClassFlag_attrsUpdated = false;
         }
+
+        if(this.defenseSystemBulletObj != -1) {
+            Bullet bullet = federationAmbassador.getObjectInstance(Bullet.class);
+            Vec3 bulletPos = bullet.getPolozenie();
+
+            if(Math.abs(bulletPos.getX()-pos.getX()) < 50f &&
+                Math.abs(bulletPos.getY()-pos.getY()) < 50f &&
+                Math.abs(bulletPos.getZ()-pos.getZ()) < 50f) {
+                remove = true;
+                updateDefenseSystemBulletObj_WRuchu(false, time);
+            } else {
+                this.dir = new Vec3(bulletPos.getX()-pos.getX(), bulletPos.getY()-pos.getY(), bulletPos.getZ()-pos.getZ()).normalize();
+                pos = new Vec3(pos.getX()+speed*dir.getX(), pos.getY()+speed*dir.getY(), pos.getZ()+speed*dir.getZ());
+                updateDefenseSystemBulletObj_Polozenie(pos, time);
+            }
+        }
+
     }
 
     // =======================================================================================================================================================
@@ -93,12 +123,14 @@ public class DefenseSystemFederate extends BaseFederate<DefenseSystemAmbassador>
         this.federationAmbassador.bulletAttr_Wielkosc = rtiAmbassador.getAttributeHandle( "Wielkosc", this.federationAmbassador.bulletClass);
         this.federationAmbassador.bulletAttr_Polozenie = rtiAmbassador.getAttributeHandle( "Polozenie", this.federationAmbassador.bulletClass);
         this.federationAmbassador.bulletAttr_WRuchu = rtiAmbassador.getAttributeHandle( "WRuchu", this.federationAmbassador.bulletClass);
+        this.federationAmbassador.bulletAttr_Zestrzelony = rtiAmbassador.getAttributeHandle( "Zestrzelony", this.federationAmbassador.bulletClass);
 
         AttributeHandleSet attributes = RtiFactoryFactory.getRtiFactory().createAttributeHandleSet();
         attributes.add( this.federationAmbassador.bulletAttr_Rodzaj);
         attributes.add( this.federationAmbassador.bulletAttr_Wielkosc);
         attributes.add( this.federationAmbassador.bulletAttr_Polozenie);
         attributes.add( this.federationAmbassador.bulletAttr_WRuchu);
+        attributes.add( this.federationAmbassador.bulletAttr_Zestrzelony);
 
         rtiAmbassador.subscribeObjectClassAttributes(this.federationAmbassador.bulletClass, attributes);
     }

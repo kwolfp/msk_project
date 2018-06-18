@@ -42,6 +42,12 @@ public class BulletFederate extends BaseFederate<BulletAmbassador> {
 
     @Override
     protected void update(double time) throws Exception {
+        if(remove && bulletObj != -1) {
+            remove = false;
+            removeObj(bulletObj);
+            bulletObj = -1;
+        }
+
         // Target ---------------------------------------------------------------------------------
         if(this.federationAmbassador.targetClassFlag_newInstance) {
             // pojawił się nowy obiekty typu Cel
@@ -64,12 +70,6 @@ public class BulletFederate extends BaseFederate<BulletAmbassador> {
             }
 
             this.federationAmbassador.targetClassFlag_attrsUpdated = false;
-        }
-
-        if(remove) {
-            remove = false;
-            removeObj(bulletObj);
-            bulletObj = -1;
         }
 
         // Weather ---------------------------------------------------------------------------------
@@ -123,30 +123,36 @@ public class BulletFederate extends BaseFederate<BulletAmbassador> {
             // zaktualizowano atrybut obiektu Czolg
             DefenseSystemBullet defenseSystemBullet = this.federationAmbassador.getObjectInstance(DefenseSystemBullet.class);
             Vec3 defenseBullet = defenseSystemBullet.getPolozenie();
-            if(Math.abs(defenseBullet.getX()-pos.getX()) < size.getX()+20f &&
-                Math.abs(defenseBullet.getY()-pos.getY()) < size.getY()+20f &&
-                Math.abs(defenseBullet.getZ()-pos.getZ()) < size.getZ()+20f) {
+            if(Math.abs(defenseBullet.getX()-pos.getX()) < size.getX()+50f &&
+                Math.abs(defenseBullet.getY()-pos.getY()) < size.getY()+50f &&
+                Math.abs(defenseBullet.getZ()-pos.getZ()) < size.getZ()+50f) {
+
+                if(bulletObj != -1) {
+                    System.out.println("Zestrzelony");
+                    updateBulletObj_Zestrzelony(true, time);
+                }
+
                 remove = true;
-                updateBulletObj_WRuchu(false, time);
             }
 
             this.federationAmbassador.defenseSystemBulletClassFlag_attrsUpdated = false;
         }
 
-        if(this.bulletObj != -1) {
+        if(!remove && this.bulletObj != -1) {
             Target target = federationAmbassador.getObjectInstance(Target.class);
-            Vec3 targetPos = target.getPolozenie();
-
-            if(Math.abs(targetPos.getX()-pos.getX()) < size.getX()+20f &&
-                Math.abs(targetPos.getY()-pos.getY()) < size.getY()+20f &&
-                Math.abs(targetPos.getZ()-pos.getZ()) < size.getZ()+20f) {
-                remove = true;
-                updateBulletObj_WRuchu(false, time);
-            } else {
-                Weather weather = federationAmbassador.getObjectInstance(Weather.class);
-                Vec3 air = weather.getKierunekWiatru();
-                pos = new Vec3(pos.getX()+speed*dir.getX()+air.getX(), pos.getY()+speed*dir.getY()+air.getY(), pos.getZ()+speed*dir.getZ()+air.getZ());
-                updateBulletObj_Polozenie(pos, time);
+            if(target != null) {
+                Vec3 targetPos = target.getPolozenie();
+                if(Math.abs(targetPos.getX()-pos.getX()) < size.getX()+20f &&
+                    Math.abs(targetPos.getY()-pos.getY()) < size.getY()+20f &&
+                    Math.abs(targetPos.getZ()-pos.getZ()) < size.getZ()+20f) {
+                    remove = true;
+                    updateBulletObj_WRuchu(false, time);
+                } else {
+                    Weather weather = federationAmbassador.getObjectInstance(Weather.class);
+                    Vec3 air = weather.getKierunekWiatru();
+                    pos = new Vec3(pos.getX()+speed*dir.getX()+air.getX(), pos.getY()+speed*dir.getY()+air.getY(), pos.getZ()+speed*dir.getZ()+air.getZ());
+                    updateBulletObj_Polozenie(pos, time);
+                }
             }
         }
 
