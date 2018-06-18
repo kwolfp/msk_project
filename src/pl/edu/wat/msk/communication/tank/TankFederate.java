@@ -17,8 +17,11 @@ import hla.rti.SuppliedAttributes;
 import hla.rti.jlc.EncodingHelpers;
 import hla.rti.jlc.RtiFactoryFactory;
 import pl.edu.wat.msk.BaseFederate;
+import pl.edu.wat.msk.object.Tank;
 import pl.edu.wat.msk.object.Target;
 import pl.edu.wat.msk.util.Vec3;
+
+import java.util.Random;
 
 /**
  * Created by Kamil Przyborowski
@@ -27,34 +30,56 @@ import pl.edu.wat.msk.util.Vec3;
 public class TankFederate extends BaseFederate<TankAmbassador> {
 
     private int tankObj = 0;
+    private Random random = new Random();
 
+    private boolean init = false;
+    private float speed = 1f;
+    private Vec3 dir = new Vec3(0, 0, 0);
+    private Vec3 pos = new Vec3(0, 0, 0);
 
     @Override
     protected void update(double time) throws Exception {
         if(this.federationAmbassador.targetClassFlag_newInstance) {
             // pojawił się nowy obiekty typu Cel
             Target target = this.federationAmbassador.getObjectInstance(Target.class);
+
+            System.out.println("Nowy cel");
+
+            updateTankObj_WystrzeleniePocisku(true, time);
             this.federationAmbassador.targetClassFlag_newInstance = false;
         }
 
         if(this.federationAmbassador.targetClassFlag_attrsUpdated) {
             // zaktualizowano atrybut obiektu Cel
             Target target = this.federationAmbassador.getObjectInstance(Target.class);
+            if(target.getNiezdatny()) {
+                System.out.println("Usuwam Target");
+                federationAmbassador.removeObject(Target.class);
+                updateTankObj_WystrzeleniePocisku(false, time);
+            }
             this.federationAmbassador.targetClassFlag_attrsUpdated = false;
         }
 
-        // Tu jakaś symulacja a jej wyniki można przesłać za pomocą metod
-//        updateTankObj_Polozenie(new Vec3(1,1,1), time);
-//        updateTankObj_Rodzaj("af", time);
-//        updateTankObj_Wielkosc(new Vec3(1, 2, 3), time);
-//        updateTankObj_WRuchu(true, time);
-//        updateTankObj_WystrzeleniePocisku(false, time);
+        if(!init) {
+            init = true;
+            updateTankObj_Polozenie(pos, time);
+            updateTankObj_Rodzaj("Tygrys", time);
+            updateTankObj_Wielkosc(new Vec3(1, 2, 3), time);
+            updateTankObj_WRuchu(true, time);
+            updateTankObj_WystrzeleniePocisku(false, time);
+        }
+
+        pos = new Vec3(pos.getX()+speed*dir.getX(), pos.getY()+speed*dir.getY(), pos.getZ()+speed*dir.getY());
+        updateTankObj_Polozenie(pos, time);
     }
 
     // ====================================================================================================
 
     @Override
     protected void init() throws Exception {
+        this.pos = new Vec3(random.nextInt(1000), random.nextInt(1000), random.nextInt(1000));
+        this.dir = new Vec3(random.nextDouble(), random.nextDouble(), random.nextDouble());
+
         this.tankObj = createObj("Czolg");
     }
 

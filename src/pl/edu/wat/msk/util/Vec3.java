@@ -54,12 +54,16 @@ public class Vec3 {
         return buff.array();
     }
 
+    public Vec3 normalize() {
+        double len = Math.sqrt(x*x+y*y+z*z);
+        this.x = this.x/len;
+        this.y = this.y/len;
+        this.z = this.z/len;
+        return this;
+    }
+
     @Override
     public String toString() {
-        return "Vec3{" +
-                "x=" + x +
-                ", y=" + y +
-                ", z=" + z +
-                '}';
+        return String.format("Vec3{x=%.3f, y=%.3f, z=%.3f}", x, y, z);
     }
 }

@@ -34,6 +34,7 @@ public class GuiApplication extends Application {
     @FXML public Label bulletWielkosc;
     @FXML public Label bulletPolozenie;
     @FXML public Label bulletWRuchu;
+    @FXML public Label bulletZestrzelony;
 
     @FXML public Label targetPolozenie;
     @FXML public Label targetPoziomUszkodzen;

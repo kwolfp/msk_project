@@ -22,25 +22,47 @@ import pl.edu.wat.msk.BaseFederate;
 import pl.edu.wat.msk.object.Bullet;
 import pl.edu.wat.msk.util.Vec3;
 
+import java.util.Random;
+
 /**
  * Created by Kamil Przyborowski
  * Wojskowa Akademia Techniczna im. Jarosława Dąbrowskiego, Warszawa 2018.
  */
 public class DefenseSystemFederate extends BaseFederate<DefenseSystemAmbassador> {
 
-    private int defenseSystemBulletObj = 0;
+    private int defenseSystemBulletObj = -1;
 
+    private float speed = 20f;
+    private Vec3 dir;
+    private Vec3 posStart;
+    private Vec3 pos;
+    private Random random = new Random();
 
     @Override
     protected void update(double time) throws Exception {
         if(this.federationAmbassador.bulletClassFlag_newInstance) {
-            // pojawił się nowy obiekty typu Cel
+            // pojawił się nowy obiekty typu Pocisk
             Bullet bullet = this.federationAmbassador.getObjectInstance(Bullet.class);
+
+            System.out.println("Nowy pocisk!");
+
+            if(this.defenseSystemBulletObj != -1) {
+                this.defenseSystemBulletObj = createObj("PociskSystemuObronyWroga");
+
+                Vec3 targetPos = bullet.getPolozenie();
+                this.dir = new Vec3(targetPos.getX()-pos.getX(), targetPos.getY()-pos.getY(), targetPos.getZ()-pos.getZ()).normalize();
+                this.pos = new Vec3(posStart.getX(), posStart.getY(), posStart.getZ());
+                speed = random.nextFloat()*30f;
+
+                updateDefenseSystemBulletObj_Polozenie(pos, time);
+                updateDefenseSystemBulletObj_WRuchu(true, time);
+            }
+
             this.federationAmbassador.bulletClassFlag_newInstance = false;
         }
 
         if(this.federationAmbassador.bulletClassFlag_attrsUpdated) {
-            // zaktualizowano atrybut obiektu Cel
+            // zaktualizowano atrybut obiektu Pocisk
             Bullet bullet = this.federationAmbassador.getObjectInstance(Bullet.class);
             this.federationAmbassador.bulletClassFlag_attrsUpdated = false;
         }
@@ -50,7 +72,7 @@ public class DefenseSystemFederate extends BaseFederate<DefenseSystemAmbassador>
 
     @Override
     protected void init() throws Exception {
-        this.defenseSystemBulletObj = createObj("PociskSystemuObronyWroga");
+        posStart = new Vec3(random.nextInt(1000), random.nextInt(1000), random.nextInt(1000));
     }
 
     @Override

@@ -70,22 +70,9 @@ public abstract class BaseAmbassador extends NullFederateAmbassador {
     public void discoverObjectInstance(int theObject, int theObjectClass, String objectName) throws CouldNotDiscover, ObjectClassNotKnown, FederateInternalError {
         if(!this.objs.containsKey(theObject)) {
             this.objs.put(theObject, theObjectClass);
+        } else {
+            this.objs.replace(theObject, theObjectClass);
         }
-    }
-
-    @Override
-    public void removeObjectInstance(int theObject, byte[] userSuppliedTag) throws ObjectNotKnown, FederateInternalError {
-        try {
-            removeObjectInstance(theObject, userSuppliedTag, null, null);
-        } catch (InvalidFederationTime invalidFederationTime) {
-            invalidFederationTime.printStackTrace();
-        }
-    }
-
-    @Override
-    public void removeObjectInstance(int theObject, byte[] userSuppliedTag, LogicalTime theTime, EventRetractionHandle retractionHandle) throws ObjectNotKnown, InvalidFederationTime, FederateInternalError {
-        this.objs.remove(theObject);
-        this.objectsInstance.remove(theObject);
     }
 
     public void setEndSimulationInteractionHandle(int handle) {
@@ -133,5 +120,11 @@ public abstract class BaseAmbassador extends NullFederateAmbassador {
 
     protected String getName() {
         return this.getClass().getSimpleName();
+    }
+
+    public <T extends BaseObject> void removeObject(Class<T> clazz) {
+        if(this.objectsInstance.containsKey(clazz)) {
+            this.objectsInstance.remove(clazz);
+        }
     }
 }

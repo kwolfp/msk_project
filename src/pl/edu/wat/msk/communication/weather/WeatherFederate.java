@@ -16,17 +16,26 @@ import hla.rti.jlc.RtiFactoryFactory;
 import pl.edu.wat.msk.BaseFederate;
 import pl.edu.wat.msk.util.Vec3;
 
+import java.util.Random;
+
 public class WeatherFederate extends BaseFederate<WeatherAmbassador> {
 
     private int weatherObj = 0;
 
+    private boolean init = false;
 
     @Override
     protected void update(double time) throws Exception {
-        // Tu jakaś symulacja a jej wyniki można przesłać za pomocą metod
-//        updateWeatherObj_WielkoscOpadow(1, time);
-//        updateWeatherObj_WielkoscOpadow(1, time);
-//        updateWeatherObj_KierunekWiatru(new Vec3(1, 2, 3), time);
+        if(!init) {
+            init = true;
+
+            Random random = new Random();
+            updateWeatherObj_SilaWiatru(random.nextInt(9)+1, time);
+            updateWeatherObj_WielkoscOpadow(random.nextInt(9)+1, time);
+            updateWeatherObj_KierunekWiatru(new Vec3(random.nextFloat() * (random.nextBoolean()?1f:-1f),
+                random.nextFloat() * (random.nextBoolean()?1f:-1f),
+                random.nextFloat() * (random.nextBoolean()?1f:-1f)), time);
+        }
     }
 
     // ===============================================================================================

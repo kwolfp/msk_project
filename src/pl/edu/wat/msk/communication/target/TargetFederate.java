@@ -4,7 +4,6 @@ import hla.rti.AttributeHandleSet;
 import hla.rti.AttributeNotDefined;
 import hla.rti.AttributeNotOwned;
 import hla.rti.ConcurrentAccessAttempted;
-import hla.rti.DeletePrivilegeNotHeld;
 import hla.rti.FederateNotExecutionMember;
 import hla.rti.InvalidFederationTime;
 import hla.rti.NameNotFound;
@@ -18,7 +17,10 @@ import hla.rti.SuppliedAttributes;
 import hla.rti.jlc.EncodingHelpers;
 import hla.rti.jlc.RtiFactoryFactory;
 import pl.edu.wat.msk.BaseFederate;
+import pl.edu.wat.msk.object.Bullet;
 import pl.edu.wat.msk.util.Vec3;
+
+import java.util.Random;
 
 /**
  * Created by Kamil Przyborowski
@@ -26,21 +28,77 @@ import pl.edu.wat.msk.util.Vec3;
  */
 public class TargetFederate extends BaseFederate<TargetAmbassador> {
 
-    private int targetObj = 0;
+    private int targetObj = -1;
+    private Random random = new Random();
+
+    private float speed = 4f;
+    private Vec3 dir = new Vec3(0, 0, 0);
+    private Vec3 pos = new Vec3(0, 0, 0);
+    private int poziomUszkodzen = 0;
+    private int max = random.nextInt(5)+1;
+    private boolean remove = false;
 
     @Override
     protected void update(double time) throws Exception {
-        // Tu jakaś symulacja a jej wyniki można przesłać za pomocą metod
-//        updateTargetObj_Polozenie(new Vec3(2, 2,4), time);
-//        updateTargetObj_PoziomUszkodzen(1337, time);
-//        updateTargetObj_Niezdatny(false, time);
+        if(remove) {
+            remove = false;
+            removeObj(targetObj);
+            targetObj = -1;
+            poziomUszkodzen = 0;
+            federationAmbassador.removeObject(Bullet.class);
+        }
+
+        if(this.federationAmbassador.bulletClassFlag_newInstance) {
+            // pojawił się nowy obiekty typu Pocisk
+            Bullet bullet = this.federationAmbassador.getObjectInstance(Bullet.class);
+            this.federationAmbassador.bulletClassFlag_newInstance = false;
+        }
+
+        if(this.federationAmbassador.bulletClassFlag_attrsUpdated) {
+            // zaktualizowano atrybut obiektu Pocisk
+            Bullet bullet = this.federationAmbassador.getObjectInstance(Bullet.class);
+
+            if(this.targetObj != -1) {
+                Vec3 bulletPos = bullet.getPolozenie();
+                Vec3 bulletSize = bullet.getWielkosc();
+                if(Math.abs(pos.getX()-bulletPos.getX()) < bulletSize.getX()+20f &&
+                    Math.abs(pos.getY()-bulletPos.getY()) < bulletSize.getY()+20f &&
+                    Math.abs(pos.getZ()-bulletPos.getZ()) < bulletSize.getZ()+20f) {
+                    poziomUszkodzen ++;
+                    if(poziomUszkodzen >= max) {
+                        remove = true;
+                        updateTargetObj_Niezdatny(true, time);
+                    }else {
+                        updateTargetObj_PoziomUszkodzen(poziomUszkodzen, time);
+                    }
+                }
+            }
+
+            this.federationAmbassador.bulletClassFlag_attrsUpdated = false;
+        }
+
+        if(this.targetObj == -1 && random.nextFloat() < 0.02 && random.nextBoolean() && !random.nextBoolean()) {
+            this.targetObj = createObj("Cel");
+
+            this.pos = new Vec3(random.nextInt(1000), random.nextInt(1000), random.nextInt(1000));
+            this.dir = new Vec3(random.nextDouble(), random.nextDouble(), random.nextDouble());
+            this.max = random.nextInt(5)+1;
+            updateTargetObj_Polozenie(this.pos, time);
+            updateTargetObj_PoziomUszkodzen(0, time);
+            updateTargetObj_Niezdatny(false, time);
+        }
+
+        if(this.targetObj != -1) {
+            this.pos = new Vec3(pos.getX()+speed*dir.getX(), pos.getY()+speed*dir.getY(), pos.getZ()+speed*dir.getZ());
+            updateTargetObj_Polozenie(pos, time);
+        }
     }
 
     // =======================================================================================
 
     @Override
     protected void init() throws Exception {
-        this.targetObj = createObj("Cel");
+//        this.targetObj = createObj("Cel");
     }
 
     @Override
@@ -56,6 +114,21 @@ public class TargetFederate extends BaseFederate<TargetAmbassador> {
         attributes.add( niezdatnyHandle );
 
         rtiAmbassador.publishObjectClass(classHandle, attributes);
+
+
+        this.federationAmbassador.bulletClass = rtiAmbassador.getObjectClassHandle("ObjectRoot.Pocisk");
+        this.federationAmbassador.bulletAttr_Rodzaj = rtiAmbassador.getAttributeHandle( "Rodzaj", this.federationAmbassador.bulletClass);
+        this.federationAmbassador.bulletAttr_Wielkosc = rtiAmbassador.getAttributeHandle( "Wielkosc", this.federationAmbassador.bulletClass);
+        this.federationAmbassador.bulletAttr_Polozenie = rtiAmbassador.getAttributeHandle( "Polozenie", this.federationAmbassador.bulletClass);
+        this.federationAmbassador.bulletAttr_WRuchu = rtiAmbassador.getAttributeHandle( "WRuchu", this.federationAmbassador.bulletClass);
+
+        attributes = RtiFactoryFactory.getRtiFactory().createAttributeHandleSet();
+        attributes.add( this.federationAmbassador.bulletAttr_Rodzaj);
+        attributes.add( this.federationAmbassador.bulletAttr_Wielkosc);
+        attributes.add( this.federationAmbassador.bulletAttr_Polozenie);
+        attributes.add( this.federationAmbassador.bulletAttr_WRuchu);
+
+        rtiAmbassador.subscribeObjectClassAttributes(this.federationAmbassador.bulletClass, attributes);
     }
 
     @Override

@@ -52,9 +52,23 @@ public class TankAmbassador extends BaseAmbassador {
         if(theObjectClass == this.targetClass) {
             Target target = new Target();
             target.setInstance(theObject);
-            this.objectsInstance.put(Target.class, target);
+
+            if(this.objectsInstance.containsKey(Target.class)) {
+                this.objectsInstance.replace(Target.class, target);
+            } else {
+                this.objectsInstance.put(Target.class, target);
+            }
+
             this.targetClassFlag_newInstance = true;
         }
     }
 
+    @Override
+    public void removeObjectInstance(int theObject, byte[] userSuppliedTag, LogicalTime theTime, EventRetractionHandle retractionHandle) throws ObjectNotKnown, InvalidFederationTime, FederateInternalError {
+        super.removeObjectInstance(theObject, userSuppliedTag, theTime, retractionHandle);
+
+        if(this.objs.get(theObject) == this.targetClass) {
+            this.objectsInstance.remove(Target.class);
+        }
+    }
 }

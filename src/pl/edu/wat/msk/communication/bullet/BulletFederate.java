@@ -23,14 +23,22 @@ import pl.edu.wat.msk.object.Target;
 import pl.edu.wat.msk.object.Weather;
 import pl.edu.wat.msk.util.Vec3;
 
+import java.util.Random;
+
 /**
  * Created by Kamil Przyborowski
  * Wojskowa Akademia Techniczna im. Jarosława Dąbrowskiego, Warszawa 2018.
  */
 public class BulletFederate extends BaseFederate<BulletAmbassador> {
 
-    private int bulletObj = 0;
+    private int bulletObj = -1;
+    private Random random = new Random();
 
+    private float speed = 20f;
+    private Vec3 dir;
+    private Vec3 pos;
+    private Vec3 size = new Vec3(2, 0.5, 0.5);
+    private boolean remove = false;
 
     @Override
     protected void update(double time) throws Exception {
@@ -44,7 +52,24 @@ public class BulletFederate extends BaseFederate<BulletAmbassador> {
         if(this.federationAmbassador.targetClassFlag_attrsUpdated) {
             // zaktualizowano atrybut obiektu Cel
             Target target = this.federationAmbassador.getObjectInstance(Target.class);
+
+            if(target.getNiezdatny()) {
+                federationAmbassador.removeObject(Target.class);
+                remove = true;
+            }
+
+            if(this.bulletObj != -1) {
+                Vec3 targetPos = target.getPolozenie();
+                this.dir = new Vec3(targetPos.getX()-pos.getX(), targetPos.getY()-pos.getY(), targetPos.getZ()-pos.getZ()).normalize();
+            }
+
             this.federationAmbassador.targetClassFlag_attrsUpdated = false;
+        }
+
+        if(remove) {
+            remove = false;
+            removeObj(bulletObj);
+            bulletObj = -1;
         }
 
         // Weather ---------------------------------------------------------------------------------
@@ -70,7 +95,21 @@ public class BulletFederate extends BaseFederate<BulletAmbassador> {
         if(this.federationAmbassador.tankClassFlag_attrsUpdated) {
             // zaktualizowano atrybut obiektu Czolg
             Tank tank = this.federationAmbassador.getObjectInstance(Tank.class);
-            this.federationAmbassador.tankClassFlag_attrsUpdated = false;
+            Target target = this.federationAmbassador.getObjectInstance(Target.class);
+
+            if(this.bulletObj == -1 && target != null && tank.isWystrzeleniePocisku()) {
+                this.bulletObj = createObj("Pocisk");
+                Vec3 targetPos = target.getPolozenie();
+                Vec3 tankPos = tank.getPolozenie();
+                this.dir = new Vec3(targetPos.getX()-tankPos.getX(), targetPos.getY()-tankPos.getY(), targetPos.getZ()-tankPos.getZ()).normalize();
+                this.pos = tank.getPolozenie();
+
+                updateBulletObj_Polozenie(pos, time);
+                updateBulletObj_Rodzaj("Kawa", time);
+                updateBulletObj_Wielkosc(size, time);
+                updateBulletObj_WRuchu(true, time);
+                this.federationAmbassador.tankClassFlag_attrsUpdated = false;
+            }
         }
 
         // DefenseSystemBullet ---------------------------------------------------------------------------------
@@ -83,20 +122,44 @@ public class BulletFederate extends BaseFederate<BulletAmbassador> {
         if(this.federationAmbassador.defenseSystemBulletClassFlag_attrsUpdated) {
             // zaktualizowano atrybut obiektu Czolg
             DefenseSystemBullet defenseSystemBullet = this.federationAmbassador.getObjectInstance(DefenseSystemBullet.class);
+            Vec3 defenseBullet = defenseSystemBullet.getPolozenie();
+            if(Math.abs(defenseBullet.getX()-pos.getX()) < size.getX()+20f &&
+                Math.abs(defenseBullet.getY()-pos.getY()) < size.getY()+20f &&
+                Math.abs(defenseBullet.getZ()-pos.getZ()) < size.getZ()+20f) {
+                remove = true;
+                updateBulletObj_WRuchu(false, time);
+            }
+
             this.federationAmbassador.defenseSystemBulletClassFlag_attrsUpdated = false;
         }
 
+        if(this.bulletObj != -1) {
+            Target target = federationAmbassador.getObjectInstance(Target.class);
+            Vec3 targetPos = target.getPolozenie();
+
+            if(Math.abs(targetPos.getX()-pos.getX()) < size.getX()+20f &&
+                Math.abs(targetPos.getY()-pos.getY()) < size.getY()+20f &&
+                Math.abs(targetPos.getZ()-pos.getZ()) < size.getZ()+20f) {
+                remove = true;
+                updateBulletObj_WRuchu(false, time);
+            } else {
+                Weather weather = federationAmbassador.getObjectInstance(Weather.class);
+                Vec3 air = weather.getKierunekWiatru();
+                pos = new Vec3(pos.getX()+speed*dir.getX()+air.getX(), pos.getY()+speed*dir.getY()+air.getY(), pos.getZ()+speed*dir.getZ()+air.getZ());
+                updateBulletObj_Polozenie(pos, time);
+            }
+        }
 
         // Tu jakaś symulacja a jej wyniki można przesłać za pomocą metod
-//        updateTankObj_Polozenie(new Vec3(1,1,1), time);
-//        updateTankObj_Rodzaj("af", time);
-//        updateTankObj_Wielkosc(new Vec3(1, 2, 3), time);
-//        updateTankObj_WRuchu(true, time);
+//        updateBulletObj_Polozenie(new Vec3(1,1,1), time);
+//        updateBulletObj_Rodzaj("af", time);
+//        updateBulletObj_Wielkosc(new Vec3(1, 2, 3), time);
+//        updateBulletObj_WRuchu(true, time);
     }
 
     @Override
     protected void init() throws Exception {
-        this.bulletObj = createObj("Pocisk");
+
     }
 
     @Override
@@ -107,12 +170,14 @@ public class BulletFederate extends BaseFederate<BulletAmbassador> {
         int bulletClassAttrWielkosc            = rtiAmbassador.getAttributeHandle( "Wielkosc", bulletClass );
         int bulletClassAttrPolozenie           = rtiAmbassador.getAttributeHandle( "Polozenie", bulletClass );
         int bulletClassAttrWRuchu              = rtiAmbassador.getAttributeHandle( "WRuchu", bulletClass );
+        int bulletClassAttrZestrzelony         = rtiAmbassador.getAttributeHandle( "Zestrzelony", bulletClass );
 
         AttributeHandleSet attributes = RtiFactoryFactory.getRtiFactory().createAttributeHandleSet();
         attributes.add( bulletClassAttrRodzaj );
         attributes.add( bulletClassAttrWielkosc );
         attributes.add( bulletClassAttrPolozenie );
         attributes.add( bulletClassAttrWRuchu );
+        attributes.add( bulletClassAttrZestrzelony );
 
         rtiAmbassador.publishObjectClass(bulletClass, attributes);
 
@@ -179,9 +244,10 @@ public class BulletFederate extends BaseFederate<BulletAmbassador> {
     @Override
     protected void deleteObjectsAndInteractions() throws Exception {
         this.removeObj(this.bulletObj);
+        this.bulletObj = -1;
     }
 
-    private void updateTankObj_Rodzaj(String value, double time) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, ObjectClassNotDefined, ObjectNotKnown, RestoreInProgress, AttributeNotOwned, AttributeNotDefined, SaveInProgress, InvalidFederationTime, ConcurrentAccessAttempted {
+    private void updateBulletObj_Rodzaj(String value, double time) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, ObjectClassNotDefined, ObjectNotKnown, RestoreInProgress, AttributeNotOwned, AttributeNotDefined, SaveInProgress, InvalidFederationTime, ConcurrentAccessAttempted {
         SuppliedAttributes attributes = RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
         int classHandle = rtiAmbassador.getObjectClass(this.bulletObj);
         int attrHandle = rtiAmbassador.getAttributeHandle( "Rodzaj", classHandle );
@@ -189,7 +255,7 @@ public class BulletFederate extends BaseFederate<BulletAmbassador> {
         rtiAmbassador.updateAttributeValues(this.bulletObj, attributes, "actualize".getBytes(), convertTime(time));
     }
 
-    private void updateTankObj_Wielkosc(Vec3 value, double time) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, ObjectClassNotDefined, ObjectNotKnown, RestoreInProgress, AttributeNotOwned, AttributeNotDefined, SaveInProgress, InvalidFederationTime, ConcurrentAccessAttempted {
+    private void updateBulletObj_Wielkosc(Vec3 value, double time) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, ObjectClassNotDefined, ObjectNotKnown, RestoreInProgress, AttributeNotOwned, AttributeNotDefined, SaveInProgress, InvalidFederationTime, ConcurrentAccessAttempted {
         SuppliedAttributes attributes = RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
         int classHandle = rtiAmbassador.getObjectClass(this.bulletObj);
         int attrHandle = rtiAmbassador.getAttributeHandle( "Wielkosc", classHandle );
@@ -197,7 +263,7 @@ public class BulletFederate extends BaseFederate<BulletAmbassador> {
         rtiAmbassador.updateAttributeValues(this.bulletObj, attributes, "actualize".getBytes(), convertTime(time));
     }
 
-    private void updateTankObj_Polozenie(Vec3 value, double time) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, ObjectClassNotDefined, ObjectNotKnown, RestoreInProgress, AttributeNotOwned, AttributeNotDefined, SaveInProgress, InvalidFederationTime, ConcurrentAccessAttempted {
+    private void updateBulletObj_Polozenie(Vec3 value, double time) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, ObjectClassNotDefined, ObjectNotKnown, RestoreInProgress, AttributeNotOwned, AttributeNotDefined, SaveInProgress, InvalidFederationTime, ConcurrentAccessAttempted {
         SuppliedAttributes attributes = RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
         int classHandle = rtiAmbassador.getObjectClass(this.bulletObj);
         int attrHandle = rtiAmbassador.getAttributeHandle( "Polozenie", classHandle );
@@ -205,10 +271,18 @@ public class BulletFederate extends BaseFederate<BulletAmbassador> {
         rtiAmbassador.updateAttributeValues(this.bulletObj, attributes, "actualize".getBytes(), convertTime(time));
     }
 
-    private void updateTankObj_WRuchu(boolean value, double time) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, ObjectClassNotDefined, ObjectNotKnown, RestoreInProgress, AttributeNotOwned, AttributeNotDefined, SaveInProgress, InvalidFederationTime, ConcurrentAccessAttempted {
+    private void updateBulletObj_WRuchu(boolean value, double time) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, ObjectClassNotDefined, ObjectNotKnown, RestoreInProgress, AttributeNotOwned, AttributeNotDefined, SaveInProgress, InvalidFederationTime, ConcurrentAccessAttempted {
         SuppliedAttributes attributes = RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
         int classHandle = rtiAmbassador.getObjectClass(this.bulletObj);
         int attrHandle = rtiAmbassador.getAttributeHandle( "WRuchu", classHandle );
+        attributes.add(attrHandle, EncodingHelpers.encodeBoolean(value));
+        rtiAmbassador.updateAttributeValues(this.bulletObj, attributes, "actualize".getBytes(), convertTime(time));
+    }
+
+    private void updateBulletObj_Zestrzelony(boolean value, double time) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, ObjectClassNotDefined, ObjectNotKnown, RestoreInProgress, AttributeNotOwned, AttributeNotDefined, SaveInProgress, InvalidFederationTime, ConcurrentAccessAttempted {
+        SuppliedAttributes attributes = RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
+        int classHandle = rtiAmbassador.getObjectClass(this.bulletObj);
+        int attrHandle = rtiAmbassador.getAttributeHandle( "Zestrzelony", classHandle );
         attributes.add(attrHandle, EncodingHelpers.encodeBoolean(value));
         rtiAmbassador.updateAttributeValues(this.bulletObj, attributes, "actualize".getBytes(), convertTime(time));
     }

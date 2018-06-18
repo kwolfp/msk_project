@@ -4,8 +4,10 @@ import hla.rti.ArrayIndexOutOfBounds;
 import hla.rti.CouldNotDiscover;
 import hla.rti.EventRetractionHandle;
 import hla.rti.FederateInternalError;
+import hla.rti.InvalidFederationTime;
 import hla.rti.LogicalTime;
 import hla.rti.ObjectClassNotKnown;
+import hla.rti.ObjectNotKnown;
 import hla.rti.ReflectedAttributes;
 import hla.rti.jlc.EncodingHelpers;
 import pl.edu.wat.msk.BaseAmbassador;
@@ -47,7 +49,7 @@ public class BulletAmbassador extends BaseAmbassador {
     public boolean tankClassFlag_newInstance  = false;
     public boolean tankClassFlag_attrsUpdated = false;
 
-    // Tank
+    // defenseSystem
     public int defenseSystemBulletClass         = 0;
     public int defenseSystemBulletAttrPolozenie = 0;
     public int defenseSystemBulletAttrWRuchu    = 0;

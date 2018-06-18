@@ -64,6 +64,7 @@ public class GuiFederate extends BaseFederate<GuiAmbassador> {
                 this.guiApplication.bulletRodzaj.setText(bullet.getRodzaj());
                 this.guiApplication.bulletWielkosc.setText(bullet.getWielkosc()+"");
                 this.guiApplication.bulletWRuchu.setText(bullet.iswRuchu()+"");
+                this.guiApplication.bulletZestrzelony.setText(bullet.isZestrzelony()+"");
             });
         }
 
@@ -72,10 +73,19 @@ public class GuiFederate extends BaseFederate<GuiAmbassador> {
             Bullet bullet = this.federationAmbassador.getObjectInstance(Bullet.class);
             this.federationAmbassador.bulletClassFlag_attrsUpdated = false;
             Platform.runLater(() -> {
-                this.guiApplication.bulletPolozenie.setText(bullet.getPolozenie()+"");
-                this.guiApplication.bulletRodzaj.setText(bullet.getRodzaj());
-                this.guiApplication.bulletWielkosc.setText(bullet.getWielkosc()+"");
-                this.guiApplication.bulletWRuchu.setText(bullet.iswRuchu()+"");
+                if(bullet != null) {
+                    this.guiApplication.bulletPolozenie.setText(bullet.getPolozenie()+"");
+                    this.guiApplication.bulletRodzaj.setText(bullet.getRodzaj());
+                    this.guiApplication.bulletWielkosc.setText(bullet.getWielkosc()+"");
+                    this.guiApplication.bulletWRuchu.setText(bullet.iswRuchu()+"");
+                    this.guiApplication.bulletZestrzelony.setText(bullet.isZestrzelony()+"");
+                } else {
+                    this.guiApplication.bulletPolozenie.setText("Brak");
+                    this.guiApplication.bulletRodzaj.setText("Brak");
+                    this.guiApplication.bulletWielkosc.setText("Brak");
+                    this.guiApplication.bulletWRuchu.setText("Brak");
+                    this.guiApplication.bulletZestrzelony.setText("Brak");
+                }
             });
         }
 
@@ -96,9 +106,15 @@ public class GuiFederate extends BaseFederate<GuiAmbassador> {
             Target target = this.federationAmbassador.getObjectInstance(Target.class);
             this.federationAmbassador.targetClassFlag_attrsUpdated = false;
             Platform.runLater(() -> {
-                this.guiApplication.targetPolozenie.setText(target.getPolozenie()+"");
-                this.guiApplication.targetPoziomUszkodzen.setText(target.getPoziomUszkodzen()+"");
-                this.guiApplication.targetNiezdatny.setText(target.getNiezdatny()+"");
+                if (target != null) {
+                    this.guiApplication.targetPolozenie.setText(target.getPolozenie()+"");
+                    this.guiApplication.targetPoziomUszkodzen.setText(target.getPoziomUszkodzen()+"");
+                    this.guiApplication.targetNiezdatny.setText(target.getNiezdatny()+"");
+                } else {
+                    this.guiApplication.targetPolozenie.setText("Brak");
+                    this.guiApplication.targetPoziomUszkodzen.setText("Brak");
+                    this.guiApplication.targetNiezdatny.setText("Brak");
+                }
             });
         }
 

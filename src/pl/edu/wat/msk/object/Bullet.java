@@ -11,6 +11,7 @@ public class Bullet extends BaseObject {
     private Vec3 wielkosc;
     private Vec3 polozenie;
     private boolean wRuchu;
+    private boolean zestrzelony;
 
     public String getRodzaj() {
         return rodzaj;
@@ -42,5 +43,13 @@ public class Bullet extends BaseObject {
 
     public void setwRuchu(boolean wRuchu) {
         this.wRuchu = wRuchu;
+    }
+
+    public boolean isZestrzelony() {
+        return zestrzelony;
+    }
+
+    public void setZestrzelony(boolean zestrzelony) {
+        this.zestrzelony = zestrzelony;
     }
 }
